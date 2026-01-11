@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bandit Perfumes - Checkout (PayPal Buttons Sandbox)</title>
+  <style>
+    body { font-family: system-ui, Arial; margin: 24px; max-width: 980px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display:block; font-weight: 700; margin-top: 10px; }
+    input, textarea, button { width: 100%; padding: 10px; margin-top: 6px; box-sizing: border-box; }
+    button { cursor: pointer; font-weight: 800; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-top: 16px; }
+    .muted { color: #666; font-size: 14px; }
+    pre { background: #0b1020; color: #d7e0ff; padding: 12px; border-radius: 10px; overflow:auto; }
+    .ok { color: #0a7; font-weight: 800; }
+    .bad { color: #c00; font-weight: 800; }
+    .actions { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; background:#f3f4f6; font-size: 12px; }
+    #paypal-buttons { margin-top: 10px; }
+    .disabled { opacity: 0.5; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <h1>Checkout (PayPal Buttons - Sandbox)</h1>
+  <p class="muted">
+    Flujo: <b>Preparar compra (backend)</b> → <b>PayPal Buttons (approve)</b> → <b>Capture (backend)</b>.
+    <br/>Sandbox = no dinero real.
+  </p>
+
+  <div class="card">
+    <h2>Configuración</h2>
+
+    <label>API Base URL</label>
+    <input id="apiBase" value="http://localhost:3001" />
+
+    <div class="row">
+      <div>
+        <label>Client ID (PayPal Sandbox)</label>
+        <input id="paypalClientId" placeholder="Pega tu PAYPAL_CLIENT_ID de sandbox" />
+        <div class="muted">Solo Client ID. <b>NUNCA</b> pegues el secret aquí.</div>
+      </div>
+      <div>
+        <label>Moneda</label>
+        <input id="currency" value="MXN" />
+        <div class="muted"><span class="pill">Sandbox</span> usa tu Client ID del dashboard.</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnLoadSdk">Cargar PayPal SDK</button>
+    </div>
+    <div class="muted">Primero carga el SDK (una vez). Luego prepara la compra.</div>
+  </div>
+
+  <div class="card">
+    <h2>Datos de compra</h2>
+
+    <div class="row">
+      <div>
+        <label>Monto a pagar</label>
+        <input id="amount" type="number" min="1" step="0.01" value="999.00" />
+        <div class="muted">Se manda como 1 ítem (qty=1) usando centavos.</div>
+      </div>
+      <div>
+        <label>SKU / Concepto</label>
+        <input id="sku" value="CUSTOM" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Nombre</label>
+        <input id="name" value="Test Buyer" />
+      </div>
+      <div>
+        <label>Teléfono</label>
+        <input id="phone" value="2220000000" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Email</label>
+        <input id="email" value="buyer@test.com" />
+      </div>
+      <div>
+        <label>Dirección (opcional)</label>
+        <input id="address" value="Calle 123" />
+      </div>
+    </div>
+
+    <label>Notas (opcional)</label>
+    <textarea id="notes" rows="3">Compra de prueba</textarea>
+
+    <div class="actions">
+      <button id="btnPrepare" disabled>Preparar compra (crear orden en backend)</button>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <div><b>purchaseId:</b> <span id="purchaseId" class="muted">(vacío)</span></div>
+      <div><b>paypalOrderId:</b> <span id="paypalOrderId" class="muted">(vacío)</span></div>
+    </div>
+
+    <h3 style="margin-top:14px;">PayPal Buttons</h3>
+    <div id="paypal-buttons" class="disabled"></div>
+    <div class="muted">Se habilitan después de “Preparar compra”.</div>
+  </div>
+
+  <div class="card">
+    <h2>Log</h2>
+    <div id="status" class="muted">Listo.</div>
+    <pre id="log">{}</pre>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    sdkLoaded: false,
+    purchaseId: null,
+    paypalOrderId: null,
+    buttons: null,
+  };
+
+  function setStatus(text, ok=true) {
+    $("status").textContent = text;
+    $("status").className = ok ? "ok" : "bad";
+  }
+
+  function setLog(obj) {
+    $("log").textContent = JSON.stringify(obj, null, 2);
+  }
+
+  function amountToCents(amountStr) {
+    const n = Number(amountStr);
+    if (!Number.isFinite(n) || n <= 0) throw new Error("Monto inválido");
+    return Math.round(n * 100);
+  }
+
+  async function apiFetch(path, options) {
+    const base = $("apiBase").value.trim().replace(/\/+$/, "");
+    const res = await fetch(base + path, {
+      headers: { "Content-Type": "application/json", ...(options?.headers||{}) },
+      ...options,
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = json?.error?.message || json?.message || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return json;
+  }
+
+  function loadPaypalSdk(clientId, currency) {
+    return new Promise((resolve, reject) => {
+      // si ya existe, no la vuelvas a cargar
+      if (window.paypal) return resolve();
+
+      const script = document.createElement("script");
+      script.src = `https://www.sandbox.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=${encodeURIComponent(currency)}&intent=capture`;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("No se pudo cargar el PayPal SDK"));
+      document.head.appendChild(script);
+    });
+  }
+
+  function enableButtonsContainer(enabled) {
+    const el = $("paypal-buttons");
+    if (enabled) el.classList.remove("disabled");
+    else el.classList.add("disabled");
+  }
+
+  function resetButtonsUI() {
+    $("paypal-buttons").innerHTML = "";
+    state.buttons = null;
+    enableButtonsContainer(false);
+  }
+
+  async function renderButtons() {
+    if (!window.paypal) throw new Error("SDK no cargado");
+    if (!state.paypalOrderId) throw new Error("No hay paypalOrderId (primero prepara compra)");
+    if (!state.purchaseId) throw new Error("No hay purchaseId (primero prepara compra)");
+
+    resetButtonsUI();
+    enableButtonsContainer(true);
+
+    // Renderiza botones
+    state.buttons = window.paypal.Buttons({
+      style: {
+        layout: "vertical"
+      },
+
+      // IMPORTANTÍSIMO:
+      // Aquí devolvemos el orderID que YA creamos en backend
+      createOrder: () => {
+        return state.paypalOrderId;
+      },
+
+      onApprove: async (data) => {
+        try {
+          setStatus("Pago aprobado en PayPal. Capturando en backend...", true);
+          setLog({ onApprove: data });
+
+          const json = await apiFetch("/v1/purchases/capture", {
+            method: "POST",
+            body: JSON.stringify({ purchaseId: state.purchaseId })
+          });
+
+          setLog({ onApprove: data, captureResponse: json });
+          setStatus("Pago capturado ✅ (status=PAID).", true);
+        } catch (e) {
+          setStatus("Error capturando: " + e.message, false);
+        }
+      },
+
+      onCancel: (data) => {
+        setStatus("Pago cancelado por el usuario.", false);
+        setLog({ onCancel: data });
+      },
+
+      onError: (err) => {
+        setStatus("PayPal Error: " + (err?.message || String(err)), false);
+        setLog({ paypalError: err });
+      },
+    });
+
+    await state.buttons.render("#paypal-buttons");
+  }
+
+  // 1) Cargar SDK
+  $("btnLoadSdk").addEventListener("click", async () => {
+    try {
+      setStatus("Cargando PayPal SDK...", true);
+      setLog({});
+
+      const clientId = $("paypalClientId").value.trim();
+      const currency = $("currency").value.trim() || "MXN";
+      if (!clientId) throw new Error("Pega tu Client ID de PayPal Sandbox");
+
+      await loadPaypalSdk(clientId, currency);
+      state.sdkLoaded = true;
+
+      $("btnPrepare").disabled = false;
+      setStatus("SDK cargado ✅ Ahora puedes preparar la compra.", true);
+    } catch (e) {
+      setStatus("Error cargando SDK: " + e.message, false);
+    }
+  });
+
+  // 2) Preparar compra (crear order en backend)
+  $("btnPrepare").addEventListener("click", async () => {
+    try {
+      if (!state.sdkLoaded || !window.paypal) throw new Error("Primero carga el SDK");
+
+      setStatus("Creando orden en backend...", true);
+      setLog({});
+      resetButtonsUI();
+
+      const cents = amountToCents($("amount").value);
+      const currency = $("currency").value.trim() || "MXN";
+
+      const payload = {
+        buyer: {
+          email: $("email").value.trim(),
+          name: $("name").value.trim(),
+          phone: $("phone").value.trim(),
+          address: $("address").value.trim() || undefined,
+          notes: $("notes").value.trim() || undefined,
+        },
+        items: [
+          {
+            sku: $("sku").value.trim() || "CUSTOM",
+            name: "Pago personalizado",
+            unitPriceCents: cents,
+            qty: 1
+          }
+        ],
+        currency
+      };
+
+      const json = await apiFetch("/v1/purchases/create-paypal-order", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      setLog(json);
+
+      const data = json.data || {};
+      state.purchaseId = data.purchaseId;
+      state.paypalOrderId = data.paypalOrderId;
+
+      $("purchaseId").textContent = state.purchaseId || "(vacío)";
+      $("paypalOrderId").textContent = state.paypalOrderId || "(vacío)";
+
+      if (!state.paypalOrderId) {
+        throw new Error("No llegó paypalOrderId del backend. Revisa create-paypal-order.");
+      }
+
+      setStatus("Orden lista ✅ Ahora usa los PayPal Buttons para aprobar el pago.", true);
+
+      // Renderizar botones con el orderId existente
+      await renderButtons();
+    } catch (e) {
+      setStatus("Error preparando compra: " + e.message, false);
+    }
+  });
+</script>
+</body>
+</html>
