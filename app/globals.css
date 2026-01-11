@@ -1,34 +1,113 @@
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Bebas+Neue&display=swap');
+/* app/globals.css */
 @import "tailwindcss";
 
-/* Estilos base para efecto cómic */
+/* Definir las variables de tema personalizadas */
+@theme {
+  --color-comicBlack: #0a0a0a;
+  --color-gtaOrange: #FF8C00;
+  --color-neonGreen: #39FF14;
+  --color-fluorescentPink: #FF00FF;
+  --color-mustardYellow: #FFD700;
+  --color-offWhite: #F5F5F5;
+  --color-brickRed: #B22222;
+  
+  --font-dancing: 'Dancing Script', cursive;
+  --font-roboto: 'Roboto', sans-serif;
+  
+  /* Sombras personalizadas */
+  --shadow-comic: 4px 4px 0px 0px #000;
+  --shadow-comic-lg: 8px 8px 0px 0px #000;
+  
+  /* Animaciones */
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-float: float 3s ease-in-out infinite;
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 5px var(--color-neonGreen);
+    }
+    to {
+      box-shadow: 0 0 20px var(--color-neonGreen), 0 0 30px var(--color-neonGreen);
+    }
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+/* Importar fuentes de Google */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+/* Estilos base */
 body {
-  background-color: #0a0a0a;
-  color: white;
+  @apply bg-comicBlack text-offWhite font-roboto;
+  overflow-x: hidden;
 }
 
-/* Efecto de borde tipo cómic */
+/* Estilos para bordes tipo cómic */
 .comic-border {
-  border: 3px solid black;
+  border: 3px solid var(--color-comicBlack);
+  position: relative;
+}
+
+.comic-border::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid var(--color-gtaOrange);
+  z-index: -1;
+}
+
+/* Efecto de texto con borde cómic */
+.text-comic {
+  text-shadow: 
+    2px 2px 0 #000,
+    -1px -1px 0 #000,  
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+}
+
+/* Efecto neon glow */
+.neon-glow {
   box-shadow: 
-    5px 5px 0px #FF8C00,
-    10px 10px 0px rgba(255, 140, 0, 0.3);
+    0 0 5px var(--color-neonGreen),
+    0 0 10px var(--color-neonGreen),
+    0 0 15px var(--color-neonGreen);
 }
 
-/* Efecto de viñeta para imágenes */
-.vignette {
-  mask-image: radial-gradient(circle, black 60%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle, black 60%, transparent 100%);
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 10px;
 }
 
-/* Scroll snapping container */
-.snap-container {
-  scroll-snap-type: y mandatory;
-  height: 100vh;
-  overflow-y: scroll;
+::-webkit-scrollbar-track {
+  background: var(--color-comicBlack);
 }
 
-.snap-section {
-  scroll-snap-align: start;
-  height: 100vh;
+::-webkit-scrollbar-thumb {
+  background: var(--color-gtaOrange);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #e67e00;
+}
+
+/* Máscaras de fragmentación */
+.mask-fragment-1 {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+}
+
+.mask-fragment-2 {
+  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%, 0 15%);
 }

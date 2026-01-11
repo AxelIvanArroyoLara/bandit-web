@@ -2,22 +2,13 @@ import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: [
-    './app/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  theme: {
-    extend: {
-      colors: {
-        'gta-orange': '#FF8C00',
-        'alucin-neon': '#39FF14',
-        'alucin-pink': '#FF00FF',
-        'comic-black': '#0a0a0a',
-      },
-      fontFamily: {
-        'gta': ['Impact', 'Haettenschweiler', 'Arial Narrow Bold', 'sans-serif'],
-        'comic': ['Comic Sans MS', 'Comic Neue', 'cursive'],
-      }
-    }
-  },
+  // En Tailwind v4, el tema se configura de manera diferente
+  theme: {},
+  plugins: [],
 }
+
 export default config
