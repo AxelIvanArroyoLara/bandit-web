@@ -7,7 +7,8 @@ export default function ProductCard({ product }: { product: any }) {
   const isLeft = product.layout === "left";
 
   return (
-    <section className="relative w-full min-h-[110vh] flex items-center justify-center overflow-visible border-b-[12px] border-black bg-black">
+    <section id={`perfume-${product.id}`}
+    className="relative w-full min-h-[110vh] flex items-center justify-center overflow-visible border-b-[12px] border-black bg-black">
       
       {/* 1. EL "FRAGMENTO" DE FONDO (Capa Inferior) */}
       <div 
@@ -63,15 +64,18 @@ export default function ProductCard({ product }: { product: any }) {
           {/* Resplandor de fondo sutil */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-white/5 blur-[120px] rounded-full pointer-events-none" />
           
-          {/* La Botella que "vuela" */}
-          <div className="relative transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 drop-shadow-[30px_50px_30px_rgba(0,0,0,0.9)]">
-            <Image 
-              src={product.image} 
-              alt={product.name} 
-              width={600} 
-              height={800} 
-              className="object-contain"
-            />
+          {/* Contenedor de imagen estandarizado */}
+          <div className="relative w-full h-[500px] md:h-[700px] lg:h-[800px] flex items-center justify-center">
+            <div className="relative w-full h-full max-w-[400px] max-h-[700px] transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 drop-shadow-[30px_50px_30px_rgba(0,0,0,0.9)]">
+              <Image 
+                src={product.image} 
+                alt={product.name} 
+                fill
+                className="object-contain p-4"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                priority={product.id <= 2} // Prioriza las primeras imágenes
+              />
+            </div>
           </div>
         </div>
 
