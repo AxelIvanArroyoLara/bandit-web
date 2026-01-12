@@ -11,15 +11,22 @@ export default function ProductCard({ product }: { product: any }) {
       
       {/* 1. EL "FRAGMENTO" DE FONDO (Capa Inferior) */}
       <div 
-        className={`absolute inset-0 z-0 transition-all duration-700`}
+        className={`absolute inset-0 z-0 transition-all duration-700 bg-cover bg-center`}
         style={{ 
-          backgroundColor: product.accentColor,
+          // Aquí es donde irá la ruta de tu imagen generada
+          backgroundImage: `url(${product.backgroundImage})`, 
+          maskImage: 'linear-gradient(to top, black 80%, transparent 100%)',
           clipPath: isLeft 
             ? "polygon(0 0, 90% 0, 70% 100%, 0% 100%)" 
             : "polygon(30% 0, 100% 0, 100% 100%, 10% 100%)",
-          opacity: 0.8
         }}
-      />
+      >
+        {/* Overlay de color para que la imagen no "ensucie" el diseño y mantenga la vibra del perfume */}
+        <div 
+          className="absolute inset-0 opacity-60" 
+          style={{ backgroundColor: product.accentColor }} 
+        />
+      </div>
 
       {/* 2. TEXTO GIGANTE DE FONDO (Estilo Rockstar VI) */}
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none select-none">
@@ -68,11 +75,6 @@ export default function ProductCard({ product }: { product: any }) {
           </div>
         </div>
 
-      </div>
-
-      {/* 4. SILUETA DE BARRIO (Capa inferior del frente) */}
-      <div className="absolute bottom-4 right-4 opacity-40 text-black z-10">
-        <Icon size={350} strokeWidth={0.5} />
       </div>
 
     </section>
