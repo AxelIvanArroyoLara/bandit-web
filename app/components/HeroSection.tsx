@@ -69,7 +69,7 @@ const HeroSection = () => {
             <span className="block text-offWhite font-roboto font-black tracking-tighter">
               LA ESENCIA
             </span>
-            <span className="block font-dancing text-gtaOrange mt-2 text-6xl md:text-8xl lg:text-9xl">
+            <span className="block font-gothic text-gtaOrange mt-2 text-6xl md:text-8xl lg:text-9xl">
               Del Poder
             </span>
           </h1>
