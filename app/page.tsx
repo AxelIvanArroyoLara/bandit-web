@@ -17,11 +17,9 @@ import { PERFUMES_DATA } from './data/perfumes'
 export default function Home() {
   return (
     <div className="bg-gta-black min-h-screen">
-      <Navbar/>
       <HeroSection />
       <ProductGridHibrido />
       <ProductGridMisiones />
-      <ProductGridRadar />
       {PERFUMES_DATA.map((perfume) => (
         <ProductCard key={perfume.id} product={perfume} />
       ))}

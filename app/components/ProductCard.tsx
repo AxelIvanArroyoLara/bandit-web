@@ -1,9 +1,11 @@
 'use client'
 import Image from 'next/image'
 import { ShoppingCart, Tag, Crosshair } from 'lucide-react'
+import {useCart} from '../context/CartContext'
 
 export default function ProductCard({ product }: { product: any }) {
   const isLeft = product.layout === "left";
+  const { addToCart } = useCart() // Traemos la función
 
   return (
     <section 
@@ -69,11 +71,12 @@ export default function ProductCard({ product }: { product: any }) {
 
           {/* BOTÓN (Lingote de Oro) */}
           <div className="mt-6 md:mt-12 w-full md:w-auto">
-            <button className="group relative w-full md:inline-flex items-center justify-center px-10 md:px-16 py-4 md:py-6 font-archivo text-2xl md:text-3xl transition-all duration-300 overflow-hidden border-4 border-black shadow-[8px_8px_0px_#000] md:shadow-[12px_12px_0px_#000] active:translate-y-1 active:shadow-none">
+            <button onClick={() => addToCart(product)}
+            className="group relative w-full md:inline-flex items-center justify-center px-10 md:px-16 py-4 md:py-6 font-archivo text-2xl md:text-3xl transition-all duration-300 overflow-hidden border-4 border-black shadow-[8px_8px_0px_#000] md:shadow-[12px_12px_0px_#000] active:translate-y-1 active:shadow-none">
               <div className="absolute inset-0 bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728]" />
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-[150%] skew-x-[-30deg] transition-transform duration-1000 group-hover:translate-x-[150%]" />
               <span className="relative flex items-center justify-center gap-4 z-10 text-black font-black tracking-tighter">
-                <Crosshair size={28} strokeWidth={3} /> COMPRAR
+                <Crosshair size={28} strokeWidth={3} /> AÑADIR AL CARRITO
               </span>
             </button>
           </div>

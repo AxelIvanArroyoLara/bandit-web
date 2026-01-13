@@ -1,4 +1,6 @@
 import { Inter, UnifrakturCook, Archivo_Black } from 'next/font/google' //
+import { CartProvider } from './context/CartContext'
+import Navbar from './components/Navbar'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -9,7 +11,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${gothic.variable} ${archivo.variable}`}> 
       <body className={`${inter.className} min-h-screen`}>
-        {children}
+        <CartProvider>
+          <Navbar />
+          <main className="pt-16">{children}</main>
+        </CartProvider>
       </body>
     </html>
   )

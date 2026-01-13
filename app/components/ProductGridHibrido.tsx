@@ -19,7 +19,14 @@ export default function ProductGridHibrido() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
   
-  const bestSellers = PERFUMES_DATA.slice(0, 6)
+  // 1. Definimos el orden específico por ID:
+  // 4: Valentino, 8: Jean Paul, 2: Versace, 5: Afnan 9pm, 1: Fakhar, 6: Carolina Herrera
+  const selectedIds = [4, 8, 2, 5, 1, 6];
+
+  // 2. Filtramos y ordenamos los perfumes según nuestro array de IDs
+  const bestSellers = selectedIds
+    .map(id => PERFUMES_DATA.find(p => p.id === id))
+    .filter((p): p is any => p !== undefined); // Evitamos errores si un ID no existe
   
   const scrollToPerfume = (id: number) => {
     try {
