@@ -3,141 +3,127 @@
 import { ArrowDown, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+// Nombres de tus archivos en public/backgrounds/
+// Asegúrate de que coincidan exactamente con tus nombres de archivo
+const BACKGROUNDS = [
+  'Perfume1.png', // Reemplaza con tus nombres reales
+  'Perfume2.png',
+  'Perfume3.png',
+  'Perfume4.png',
+  'Perfume5.png',
+  'Perfume6.png',
+  'Perfume7.png',
+  'Perfume8.png',
+  'Perfume9.png',
+]
+
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isFading, setIsFading] = useState(false)
 
   useEffect(() => {
     setIsVisible(true)
+
+    // Lógica de la Pantalla de Carga (Ciclo de 6 segundos)
+    const interval = setInterval(() => {
+      setIsFading(true) // Empezar fundido a negro
+      
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % BACKGROUNDS.length)
+        setIsFading(false) // Quitar fundido con la nueva imagen
+      }, 1000) // Duración del fundido a negro
+
+    }, 6000) // Tiempo que dura cada imagen
+
+    return () => clearInterval(interval)
   }, [])
 
   const scrollToProducts = () => {
-    const productsSection = document.getElementById('productos')
+    const productsSection = document.getElementById('perfume-1')
     if (productsSection) {
       productsSection.scrollIntoView({ behavior: 'smooth' })
     }
   }
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
-      {/* Fondo con gradiente y textura */}
+    <section className="relative h-screen w-full overflow-hidden bg-black">
+      
+      {/* 1. CONTENEDOR DE IMÁGENES (ESTILO PANTALLA DE CARGA) */}
       <div className="absolute inset-0 z-0">
-        {/* Gradiente base */}
-        <div className="absolute inset-0 bg-gradient-to-br from-comicBlack via-gray-900 to-comicBlack" />
-        
-        {/* Textura de puntos tipo cómic/halftone */}
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, #FF8C00 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
-          }}
-        />
-        
-        {/* Líneas diagonales sutiles */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 10px,
-              #FF8C00 10px,
-              #FF8C00 20px
-            )`
-          }}
-        />
-        
-        {/* Efecto de viñeta en las esquinas */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-gtaOrange/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-gtaOrange/20 to-transparent rounded-full blur-3xl" />
+        {BACKGROUNDS.map((bg, index) => (
+          <div
+            key={bg}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentIndex && !isFading ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {/* Imagen con Efecto Ken Burns (Zoom Lento) */}
+            <div 
+              className={`w-full h-full bg-cover bg-center transition-transform duration-[7000ms] ease-linear ${
+                index === currentIndex ? 'scale-110' : 'scale-100'
+              }`}
+              style={{ backgroundImage: `url(/backgrounds/${bg})` }}
+            />
+            
+            {/* Overlay para oscurecer y dar textura */}
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" />
+          </div>
+        ))}
       </div>
 
-      {/* Contenido principal */}
-      <div className="relative z-10 container mx-auto px-4 h-screen flex flex-col justify-center items-center text-center">
-        
-        {/* Elemento decorativo superior */}
-        <div className={`mb-8 transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-comicBlack/50 backdrop-blur-sm border-2 border-gtaOrange rounded-full">
-            <Sparkles className="w-4 h-4 text-gtaOrange" />
-            <span className="text-xs font-bold text-offWhite tracking-wider">COLECCIÓN EXCLUSIVA 2024</span>
-          </div>
-        </div>
+      {/* 2. TEXTURA DE PUNTOS (Halftone) - Se queda fija encima */}
+      <div 
+        className="absolute inset-0 opacity-20 z-10 pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, #FF8C00 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }}
+      />
 
-        {/* Título principal */}
-        <div className={`space-y-6 mb-12 transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight">
-            <span className="block text-offWhite font-roboto font-black tracking-tighter">
-              LA ESENCIA
+      {/* 3. CONTENIDO CENTRAL */}
+      <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-4">
+        <div className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="text-gtaOrange w-6 h-6 animate-pulse" />
+            <span className="text-gtaOrange font-archivo tracking-[0.3em] text-sm md:text-base uppercase">
+              The Real Street Fragrance
             </span>
-            <span className="block font-gothic text-gtaOrange mt-2 text-6xl md:text-8xl lg:text-9xl">
-              Del Poder
-            </span>
+          </div>
+          
+          <h1 className="text-7xl md:text-9xl font-black text-white mb-6 tracking-tighter italic">
+            PERFUMES<br/>
+            <span className="text-gta-stroke drop-shadow-[10px_10px_0px_#FF8C00]">BANDIDO</span>
           </h1>
-          
-          {/* Línea decorativa */}
-          <div className="w-48 h-1 mx-auto bg-gradient-to-r from-transparent via-gtaOrange to-transparent" />
-        </div>
 
-        {/* Subtítulo */}
-        <div className={`mb-12 max-w-3xl transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <p className="text-xl md:text-2xl text-offWhite/90 mb-6 font-light">
-            Ocho fragancias únicas. Una actitud indomable.
-            <br />
-            <span className="text-gtaOrange font-semibold">Para los que escriben su propio destino.</span>
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-bg-cream/80 font-inter mb-10 leading-relaxed">
+            No es solo un aroma, es el respeto de la calle. <br className="hidden md:block"/> 
+            Lujo belicón para los que llevan el mando.
           </p>
-          
-          {/* Contador de productos */}
-          <div className="inline-flex items-center gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gtaOrange">8</div>
-              <div className="text-sm text-offWhite/70">FRAGANCIAS</div>
-            </div>
-            <div className="h-8 w-px bg-gtaOrange/30" />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-gtaOrange">1</div>
-              <div className="text-sm text-offWhite/70">ACTITUD</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Botones de acción */}
-        <div className={`flex flex-col sm:flex-row gap-6 transition-all duration-1000 delay-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          {/* Botón principal */}
-          <button
+          <button 
             onClick={scrollToProducts}
-            className="group relative px-10 py-4 bg-gtaOrange text-comicBlack font-bold text-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,140,0,0.4)] hover:scale-105 active:scale-95"
+            className="group relative px-12 py-5 font-archivo text-2xl text-black transition-all duration-300"
           >
-            {/* Efecto de brillo al hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-            
-            <span className="relative flex items-center justify-center gap-3">
+            <div className="absolute inset-0 bg-gtaOrange skew-x-[-12deg] group-hover:bg-white transition-colors" />
+            <span className="relative flex items-center justify-center gap-3 font-black">
               EXPLORAR COLECCIÓN
-              <ArrowDown className="w-5 h-5 group-hover:animate-bounce" />
+              <ArrowDown className="w-6 h-6 group-hover:animate-bounce" />
             </span>
           </button>
         </div>
 
-        {/* Indicador de scroll */}
-        <div 
-          onClick={scrollToProducts}
-          className={`absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer transition-all duration-1000 delay-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
-        >
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-sm text-offWhite/70 tracking-wider">DESCUBRE</span>
-            <div className="animate-bounce">
-              <ArrowDown className="w-6 h-6 text-gtaOrange" />
-            </div>
-          </div>
+        {/* INDICADOR DE CARGA (Estilo Rockstar en la esquina) */}
+        <div className="absolute bottom-10 right-10 flex items-center gap-4">
+           <div className="flex flex-col items-end">
+              <span className="text-[10px] text-gtaOrange font-archivo tracking-widest uppercase opacity-50">Cargando Estilo</span>
+              <div className="w-32 h-1 bg-white/10 mt-1 overflow-hidden">
+                <div className="h-full bg-gtaOrange animate-loading-bar" />
+              </div>
+           </div>
         </div>
       </div>
-
-      {/* Elementos decorativos flotantes */}
-      <div className="absolute top-1/4 left-10 w-4 h-4 bg-gtaOrange rounded-full animate-pulse" />
-      <div className="absolute top-1/3 right-20 w-3 h-3 bg-gtaOrange/50 rounded-full animate-pulse delay-300" />
-      <div className="absolute bottom-1/4 left-1/4 w-2 h-2 bg-gtaOrange/30 rounded-full animate-pulse delay-700" />
-      
-      {/* Borde inferior decorativo */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-gtaOrange to-transparent" />
     </section>
   )
 }
